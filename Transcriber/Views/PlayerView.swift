@@ -4,12 +4,20 @@ import SwiftUI
 /// Video (when there is any) plus a transport bar: play/pause, scrubber, times, speed.
 struct PlayerView: View {
     @Bindable var player: PlayerController
+    /// The cue being spoken, drawn over the video when captions are on.
+    var caption: String?
     @State private var scrubTime: TimeInterval?
+
+    private var settings: AppSettings { AppSettings.shared }
 
     var body: some View {
         VStack(spacing: 0) {
             if player.hasVideo {
-                VideoPlayer(player: player.player)
+                VideoPlayer(player: player.player) {
+                    if settings.previewCaptions {
+                        CaptionOverlay(text: caption, style: settings.captionStyle)
+                    }
+                }
                     .frame(maxWidth: .infinity)
                     .frame(height: 260)
                     .background(.black)

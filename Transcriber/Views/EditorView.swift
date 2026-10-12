@@ -13,7 +13,7 @@ struct EditorView: View {
     var body: some View {
         VStack(spacing: 0) {
             if document.hasMedia, player.isLoaded {
-                PlayerView(player: player)
+                PlayerView(player: player, caption: currentCaption)
                 Divider()
             } else if document.mediaMissing {
                 MissingMediaBanner(document: document)
@@ -65,6 +65,15 @@ struct EditorView: View {
         }
         .toggleStyle(.button)
         .help(tab == .cues ? "Timestamped cues (⌘1)" : "Plain text (⌘2)")
+    }
+
+    /// The cue under the playhead, wrapped the way it would be in an SRT file.
+    private var currentCaption: String? {
+        guard player.hasVideo, let transcript = document.transcript,
+              let index = transcript.cueIndex(at: player.currentTime) else { return nil }
+        let cue = transcript.cues[index]
+        guard cue.contains(player.currentTime) else { return nil }
+        return CueBuilder.wrap(cue.text, settings: document.cueSettings).joined(separator: "\n")
     }
 
     /// The transcript's language; picking another one transcribes the file again in it.

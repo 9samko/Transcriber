@@ -14,7 +14,8 @@ and export subtitles.
   next cue, ⌥⌘N inserts one, ⌫ deletes, the clock button under a timestamp retimes it (with
   "Playhead" buttons). ⌘F opens Find & Replace (match case, whole words, Replace / All, all undoable).
 - **Text** view: the transcript as paragraphs, with optional timestamps and Copy All.
-- Playback: video shows a player, audio a transport bar. Click a cue's timestamp to seek;
+- Playback: video shows a player with the current cue drawn over it as a caption (three
+  styles in Settings › Subtitles, toggle with ⇧⌘C; not burned in), audio a transport bar. Click a cue's timestamp to seek;
   the current cue is highlighted and followed during playback (View › Follow Playback).
   ⌥Space plays/pauses, ⌥⌘← / ⌥⌘→ skip 5 s, ⌘J jumps to the current cue.
 - Export (File › Export, ⌘E for SRT): `.srt`, `.vtt`, plain `.txt`, `.txt` with a

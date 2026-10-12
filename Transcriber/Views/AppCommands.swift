@@ -121,6 +121,8 @@ struct AppCommands: Commands {
             .pickerStyle(.inline)
             .disabled(!hasTranscript)
             Toggle("Follow Playback", isOn: Binding(get: { settings.followPlayback }, set: { settings.followPlayback = $0 }))
+            Toggle("Captions on Video", isOn: Binding(get: { settings.previewCaptions }, set: { settings.previewCaptions = $0 }))
+                .keyboardShortcut("c", modifiers: [.command, .shift])
             Divider()
         }
     }

@@ -12,10 +12,20 @@ struct SettingsView: View {
         return min(620, screen - 110)
     }
 
+    @State private var selectedTab = SettingsView.initialTab
+
+    /// Debug builds honor TRANSCRIBER_SETTINGS_TAB=Subtitles (or General, Watched Folders) for screenshots.
+    private static var initialTab: String {
+        #if DEBUG
+        if let tab = ProcessInfo.processInfo.environment["TRANSCRIBER_SETTINGS_TAB"] { return tab }
+        #endif
+        return "General"
+    }
+
     var body: some View {
         @Bindable var updater = updater
-        TabView {
-            Tab("General", systemImage: "gearshape") {
+        TabView(selection: $selectedTab) {
+            Tab("General", systemImage: "gearshape", value: "General") {
                 Form {
                     Section("Transcription") {
                         LanguagePicker(selection: $settings.localeIdentifier)
@@ -49,8 +59,23 @@ struct SettingsView: View {
                 }
                 .formStyle(.grouped)
             }
-            Tab("Subtitles", systemImage: "captions.bubble") {
+            Tab("Subtitles", systemImage: "captions.bubble", value: "Subtitles") {
                 Form {
+                    Section("Video Preview") {
+                        Toggle("Show captions over the video while it plays", isOn: $settings.previewCaptions)
+                        Picker("Style", selection: $settings.captionStyle) {
+                            ForEach(CaptionPreviewStyle.allCases) { style in
+                                Text(style.title).tag(style)
+                            }
+                        }
+                        .pickerStyle(.segmented)
+                        .disabled(!settings.previewCaptions)
+                        CaptionStyleSample(style: settings.captionStyle)
+                            .opacity(settings.previewCaptions ? 1 : 0.4)
+                        Text(settings.captionStyle.summary + " Captions in the preview use the same line limits as SRT export; they are not burned into the video.")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
                     Section("Subtitle Cues") {
                         Stepper("Characters per line: \(settings.maxCharactersPerLine)", value: $settings.maxCharactersPerLine, in: 20...80)
                         Stepper("Lines per cue: \(settings.maxLines)", value: $settings.maxLines, in: 1...3)
@@ -77,7 +102,7 @@ struct SettingsView: View {
                 }
                 .formStyle(.grouped)
             }
-            Tab("Watched Folders", systemImage: "folder.badge.gearshape") {
+            Tab("Watched Folders", systemImage: "folder.badge.gearshape", value: "Watched Folders") {
                 Form {
             WatchedFoldersSettings()
                 }

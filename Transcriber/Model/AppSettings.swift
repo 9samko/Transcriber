@@ -29,6 +29,13 @@ final class AppSettings {
     var followPlayback: Bool {
         didSet { defaults.set(followPlayback, forKey: "followPlayback") }
     }
+    /// Draw the current cue over the video in the player.
+    var previewCaptions: Bool {
+        didSet { defaults.set(previewCaptions, forKey: "previewCaptions") }
+    }
+    var captionStyle: CaptionPreviewStyle {
+        didSet { defaults.set(captionStyle.rawValue, forKey: "captionStyle") }
+    }
     /// Export formats written for files from watched folders (ExportFormat raw values).
     var watchFormats: Set<String> {
         didSet { defaults.set(Array(watchFormats).sorted(), forKey: "watchFormats") }
@@ -46,6 +53,8 @@ final class AppSettings {
         pauseBreak = defaults.object(forKey: "pauseBreak") as? Double ?? 1.0
         paragraphGap = defaults.object(forKey: "paragraphGap") as? Double ?? 1.5
         followPlayback = defaults.object(forKey: "followPlayback") as? Bool ?? true
+        previewCaptions = defaults.object(forKey: "previewCaptions") as? Bool ?? true
+        captionStyle = CaptionPreviewStyle(rawValue: defaults.string(forKey: "captionStyle") ?? "") ?? .classic
         watchFormats = Set(defaults.stringArray(forKey: "watchFormats") ?? [ExportFormat.srt.rawValue])
         watchSavesProject = defaults.object(forKey: "watchSavesProject") as? Bool ?? false
     }
