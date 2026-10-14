@@ -11,20 +11,31 @@ enum WatchProcessor {
 
     static func transcribe(_ url: URL) async throws -> URL? {
         let settings = AppSettings.shared
+        return try await transcribe(url, formats: settings.watchFormats, savesProject: settings.watchSavesProject).first
+    }
+
+    /// Transcribes `url` and writes the given export formats (ExportFormat raw values) and, if asked,
+    /// a .transcriber project next to it. Returns the files written, the project first.
+    static func transcribe(_ url: URL, formats: Set<String>, savesProject: Bool,
+                           onEvent: (TranscriptionEvent) -> Void = { _ in }) async throws -> [URL] {
+        let settings = AppSettings.shared
         let locale = settings.locale
         let cueSettings = settings.cueSettings
         var words: [TranscriptWord] = []
         for try await event in TranscriptionEngine.transcribe(url: url, locale: locale) {
             if case .words(let new) = event { words.append(contentsOf: new) }
+            onEvent(event)
         }
+        try Task.checkCancellation()
         let cues = CueBuilder.cues(from: words, settings: cueSettings)
         let base = url.deletingPathExtension()
         let title = base.lastPathComponent
-        var first: URL?
+        var written: [URL] = []
 
-        for format in ExportFormat.allCases where settings.watchFormats.contains(format.rawValue) {
+        for format in ExportFormat.allCases where formats.contains(format.rawValue) {
             let text: String
             if format.isGenerated {
+                onEvent(.status("Writing SOAP note…"))
                 let transcript = TranscriptExporter.plainText(cues, paragraphGap: settings.paragraphGap)
                 text = try await SoapNoteGenerator.generate(transcript: transcript, title: title)
             } else {
@@ -33,10 +44,10 @@ enum WatchProcessor {
             let target = uniqueURL(base: format.fileSuffix.isEmpty ? base : base.deletingLastPathComponent().appendingPathComponent(base.lastPathComponent + format.fileSuffix),
                                    ext: format.fileExtension)
             try text.write(to: target, atomically: true, encoding: .utf8)
-            first = first ?? target
+            written.append(target)
         }
 
-        if settings.watchSavesProject {
+        if savesProject {
             let duration = (try? await AVURLAsset(url: url).load(.duration).seconds) ?? 0
             let file = ProjectFile(mediaBookmark: try? url.bookmarkData(options: [], includingResourceValuesForKeys: nil, relativeTo: nil),
                                    mediaPath: url.path,
@@ -49,9 +60,9 @@ enum WatchProcessor {
             encoder.dateEncodingStrategy = .iso8601
             let target = uniqueURL(base: base, ext: "transcriber")
             try encoder.encode(file).write(to: target, options: .atomic)
-            first = first ?? target
+            written.insert(target, at: 0)
         }
-        return first
+        return written
     }
 
     /// `Talk.srt`, or `Talk 2.srt` if that already exists: nothing the user made gets overwritten.

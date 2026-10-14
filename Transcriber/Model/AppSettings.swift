@@ -45,6 +45,15 @@ final class AppSettings {
         didSet { defaults.set(watchSavesProject, forKey: "watchSavesProject") }
     }
 
+    /// Export formats written next to each file in the batch window (ExportFormat raw values).
+    var batchFormats: Set<String> {
+        didSet { defaults.set(Array(batchFormats).sorted(), forKey: "batchFormats") }
+    }
+    /// Also save a .transcriber project next to each batch file, so it can be opened and edited.
+    var batchSavesProject: Bool {
+        didSet { defaults.set(batchSavesProject, forKey: "batchSavesProject") }
+    }
+
     private init() {
         localeIdentifier = LanguageCatalog.normalized(defaults.string(forKey: "localeIdentifier") ?? Locale.current.identifier)
         maxCharactersPerLine = defaults.object(forKey: "maxCharactersPerLine") as? Int ?? 42
@@ -57,6 +66,8 @@ final class AppSettings {
         captionStyle = CaptionPreviewStyle(rawValue: defaults.string(forKey: "captionStyle") ?? "") ?? .classic
         watchFormats = Set(defaults.stringArray(forKey: "watchFormats") ?? [ExportFormat.srt.rawValue])
         watchSavesProject = defaults.object(forKey: "watchSavesProject") as? Bool ?? false
+        batchFormats = Set(defaults.stringArray(forKey: "batchFormats") ?? [ExportFormat.srt.rawValue, ExportFormat.text.rawValue])
+        batchSavesProject = defaults.object(forKey: "batchSavesProject") as? Bool ?? true
     }
 
     var locale: Locale { Locale(identifier: localeIdentifier) }

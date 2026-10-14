@@ -42,6 +42,8 @@ struct AppCommands: Commands {
         CommandGroup(after: .newItem) {
             Button("Open Media…") { openMedia() }
                 .keyboardShortcut("o", modifiers: [.command, .shift])
+            Button("Batch Transcribe…") { BatchWindow.show() }
+                .keyboardShortcut("b", modifiers: [.command, .shift])
         }
 
         CommandGroup(after: .saveItem) {
@@ -131,11 +133,15 @@ struct AppCommands: Commands {
 
     private func openMedia() {
         let panel = NSOpenPanel()
-        panel.allowsMultipleSelection = false
+        panel.allowsMultipleSelection = true
         panel.canChooseDirectories = false
         panel.allowedContentTypes = PendingMedia.acceptedTypes
-        panel.message = "Choose a video or audio file to transcribe."
+        panel.message = "Choose video or audio files to transcribe."
         guard panel.runModal() == .OK, let url = panel.url else { return }
+        if panel.urls.count > 1 {
+            BatchWindow.show(adding: panel.urls)
+            return
+        }
         if let context, !context.document.hasMedia {
             context.attachMedia(url)
         } else {

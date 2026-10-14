@@ -9,6 +9,7 @@ struct DocumentView: View {
     @State private var player = PlayerController()
     @State private var viewID = UUID()
     @State private var dropTargeted = false
+    @State private var window: NSWindow?
     @Environment(\.undoManager) private var undoManager
     @Environment(\.newDocument) private var newDocument
     @Environment(\.openSettings) private var openSettings
@@ -26,6 +27,7 @@ struct DocumentView: View {
                         .allowsHitTesting(false)
                 }
             }
+            .background(WindowReader { window = $0 })
             .dropDestination(for: URL.self) { urls, _ in
                 handleDrop(urls)
             } isTargeted: { dropTargeted = $0 }
@@ -87,6 +89,12 @@ struct DocumentView: View {
             NSDocumentController.shared.openDocument(withContentsOf: project, display: true) { _, _, _ in }
         }
         guard !media.isEmpty else { return !projects.isEmpty }
+        if media.count > 1 {
+            // Several files: transcribe them all in the batch window, and drop this window if it was empty.
+            BatchWindow.show(adding: media)
+            if !document.hasMedia, !document.hasTranscript { window?.close() }
+            return true
+        }
         var remaining = media[...]
         if !document.hasMedia || document.mediaMissing && !document.hasTranscript {
             attach(remaining.removeFirst())

@@ -61,12 +61,21 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         return !launchedAtLogin
     }
 
-    /// Keep running without windows while folders are being watched.
+    /// Keep running without windows while folders are being watched or a batch is in progress.
     func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool {
-        !FolderWatcher.shared.isWatching
+        !FolderWatcher.shared.isWatching && !BatchQueue.shared.isRunning
     }
 
     func application(_ application: NSApplication, open urls: [URL]) {
+        let media = urls.filter { PendingMedia.isMedia($0) }
+        if media.count > 1 {
+            // Several files at once: one batch window instead of a window per file.
+            for url in urls where PendingMedia.isProject(url) {
+                NSDocumentController.shared.openDocument(withContentsOf: url, display: true) { _, _, _ in }
+            }
+            BatchWindow.show(adding: media)
+            return
+        }
         var usedExistingEmptyDocument = false
         for url in urls {
             if PendingMedia.isProject(url) {
@@ -81,4 +90,5 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             }
         }
     }
+
 }

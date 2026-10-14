@@ -28,6 +28,11 @@ and export subtitles.
   a newline typed in a cue forces a line break.
 - Projects save as `.transcriber` files (JSON: words, cues, settings and a bookmark + path to
   the media). If the media moved, the window offers Locate…; editing and export work without it.
+- **Batch transcription**: dropping several files at once (on a window, the Dock icon, or with
+  Open Media…) puts them all in one Batch Transcription window (File ▸ Batch Transcribe…,
+  ⇧⌘B) instead of a window each. They run one after another with an overall progress bar and
+  per-file status; the chosen outputs (project, SRT, VTT, TXT, Markdown, SOAP) are written next
+  to each file. Finished items can be opened, shown in the Finder, or retried.
 - **Watched folders** (Settings): new video or audio files dropped into a watched folder are
   transcribed automatically and the chosen outputs (SRT, VTT, TXT, Markdown, project) are
   written next to them, with a notification when done. Files already in the folder are left
@@ -56,6 +61,9 @@ and export subtitles.
   (`say -o speech.aiff "…"` makes a quick test clip).
 
 ## Releases and updates
+
+To try a build on your own Mac without a Developer ID, `Tools/install-local.sh` builds it,
+signs it ad hoc (Sparkle included) and installs it in `/Applications`.
 
 Updates ship through Sparkle (SPM, 2.6+). The feed is
 `https://beardfm.app/transcriber/appcast.xml`, kept in the beardfm.app site repo at
